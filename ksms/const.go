@@ -6,13 +6,15 @@ import (
 )
 
 const (
-	accesskey    = "Accesskey"
-	secretKey    = "SecretKey"
-	signNameKey  = "SignName"
-	tplIdKey     = "TplId"
-	tplParamsKey = "TplParams"
-	mobileKey    = "Mobile"
-	signatureKey = "Signature"
+	accesskey             = "Accesskey"
+	secretKey             = "SecretKey"
+	signNameKey           = "SignName"
+	tplIdKey              = "TplId"
+	tplParamsKey          = "TplParams"
+	mobileKey             = "Mobile"
+	signatureKey          = "Signature"
+	actionKey             = "Action"
+	actionBatchSendSmsKey = "BatchSendSms"
 )
 
 var (

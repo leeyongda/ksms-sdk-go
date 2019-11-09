@@ -3,6 +3,7 @@ package ksms
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,7 +17,7 @@ type Client struct {
 	SecretKey  string
 	SignName   string
 	TplId      string
-	TplParams  string
+	tplParams  map[string]interface{}
 	httpClient http.Client
 	dopts      clientOptions
 	params     params
@@ -91,6 +92,7 @@ func NewSmsClient(cl Client, opts ...ClientOption) *Client {
 	for _, opt := range opts {
 		opt.apply(&co)
 	}
+	cl.tplParams = make(map[string]interface{})
 	cl.params = params{uv: url.Values{}}
 	cl.processParams()
 	cl.httpClient = http.Client{Timeout: 10 * time.Second}
@@ -108,10 +110,25 @@ func (c *Client) genSha256(rawStr, key string) string {
 func (c *Client) processParams() {
 	// copy params from defaultCommentUv
 	c.params.CopyParams(defaultCommentUv)
+	// 覆盖默认参数
+	if c.dopts.action != "" {
+		c.params.uv.Set("Action", c.dopts.action)
+	}
+	if c.dopts.service != "" {
+		c.params.uv.Set("Service", c.dopts.service)
+	}
+	if c.dopts.signatureMethod != "" {
+		c.params.uv.Set("SignatureMethod", c.dopts.signatureMethod)
+	}
+	if c.dopts.signatureVersion != "" {
+		c.params.uv.Set("SignatureVersion", c.dopts.signatureVersion)
+	}
+	if c.dopts.version != "" {
+		c.params.uv.Set("Version", c.dopts.version)
+	}
 	c.params.SetAccessKey(c.AccessKey)
 	c.params.SetSignName(c.SignName)
 	c.params.SetTplId(c.TplId)
-	c.params.SetTplParams(c.TplParams)
 }
 
 func (c *Client) beforeSend() {
@@ -119,7 +136,30 @@ func (c *Client) beforeSend() {
 	c.signature = sign
 }
 
+func (c *Client) SetTplParams(key string, val interface{}) *Client {
+	c.tplParams[key] = val
+	return c
+}
+
+func (c *Client) Marshal() (err error) {
+	if b, err := json.Marshal(c.tplParams); err != nil {
+	} else {
+		c.params.SetTplParams(string(b))
+	}
+	return err
+}
+
+func (c *Client) SendBatchSms(mobile []string) (result []byte, err error) {
+	m := strings.Join(mobile, ",")
+	c.params.SetAction(actionBatchSendSmsKey)
+	result, err = c.SendSms(m)
+	return
+}
+
 func (c *Client) SendSms(mobile string) (result []byte, err error) {
+	if err = c.Marshal(); err != nil {
+		return
+	}
 	c.params.SetMobile(mobile)
 	c.beforeSend()
 	p := fmt.Sprintf("%s&Signature=%s", c.params.Encode(), c.signature)

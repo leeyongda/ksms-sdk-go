@@ -38,6 +38,10 @@ func (p *params) SetSignature(val string) {
 	p.uv.Set(signatureKey, val)
 }
 
+func (p *params) SetAction(val string) {
+	p.uv.Set(actionKey, val)
+}
+
 func (p *params) Encode() string {
 	return p.uv.Encode()
 }
