@@ -2,7 +2,7 @@
 
 show me code(golang)
 ```Golang
-		cl := NewSmsClient(Client{
+	cl := NewSmsClient(Client{
 		AccessKey: "",
 		SecretKey: "",
 		SignName:  "签名",
